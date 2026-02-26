@@ -14,7 +14,7 @@ describe('fetch-upstream.sh', () => {
   beforeEach(() => {
     // Create a bare repo to act as "upstream"
     upstreamBareDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'nanoclaw-upstream-'),
+      path.join(os.tmpdir(), 'opennekaise-upstream-'),
     );
     execSync('git init --bare -b main', {
       cwd: upstreamBareDir,
@@ -22,7 +22,7 @@ describe('fetch-upstream.sh', () => {
     });
 
     // Create a working repo, add files, push to the bare repo
-    const seedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nanoclaw-seed-'));
+    const seedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opennekaise-seed-'));
     execSync('git init -b main', { cwd: seedDir, stdio: 'pipe' });
     execSync('git config user.email "test@test.com"', {
       cwd: seedDir,
@@ -31,7 +31,7 @@ describe('fetch-upstream.sh', () => {
     execSync('git config user.name "Test"', { cwd: seedDir, stdio: 'pipe' });
     fs.writeFileSync(
       path.join(seedDir, 'package.json'),
-      JSON.stringify({ name: 'nanoclaw', version: '2.0.0' }),
+      JSON.stringify({ name: 'opennekaise', version: '2.0.0' }),
     );
     fs.mkdirSync(path.join(seedDir, 'src'), { recursive: true });
     fs.writeFileSync(path.join(seedDir, 'src/index.ts'), 'export const v = 2;');
@@ -51,7 +51,7 @@ describe('fetch-upstream.sh', () => {
     fs.rmSync(seedDir, { recursive: true, force: true });
 
     // Create the "project" repo that will run the script
-    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nanoclaw-project-'));
+    projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opennekaise-project-'));
     execSync('git init -b main', { cwd: projectDir, stdio: 'pipe' });
     execSync('git config user.email "test@test.com"', {
       cwd: projectDir,
@@ -63,7 +63,7 @@ describe('fetch-upstream.sh', () => {
     });
     fs.writeFileSync(
       path.join(projectDir, 'package.json'),
-      JSON.stringify({ name: 'nanoclaw', version: '1.0.0' }),
+      JSON.stringify({ name: 'opennekaise', version: '1.0.0' }),
     );
     execSync('git add -A && git commit -m "init"', {
       cwd: projectDir,
@@ -147,7 +147,7 @@ describe('fetch-upstream.sh', () => {
     expect(status.REMOTE).toBe('upstream');
     expect(status.CURRENT_VERSION).toBe('1.0.0');
     expect(status.NEW_VERSION).toBe('2.0.0');
-    expect(status.TEMP_DIR).toMatch(/^\/tmp\/nanoclaw-update-/);
+    expect(status.TEMP_DIR).toMatch(/^\/tmp\/opennekaise-update-/);
 
     // Verify extracted files exist
     expect(fs.existsSync(path.join(status.TEMP_DIR, 'package.json'))).toBe(
@@ -161,9 +161,9 @@ describe('fetch-upstream.sh', () => {
     fs.rmSync(status.TEMP_DIR, { recursive: true, force: true });
   });
 
-  it('uses origin when it points to qwibitai/nanoclaw', () => {
-    // Set origin to a URL containing qwibitai/nanoclaw
-    execSync(`git remote add origin https://github.com/qwibitai/nanoclaw.git`, {
+  it('uses origin when it points to qwibitai/opennekaise', () => {
+    // Set origin to a URL containing qwibitai/opennekaise
+    execSync(`git remote add origin https://github.com/qwibitai/opennekaise.git`, {
       cwd: projectDir,
       stdio: 'pipe',
     });
@@ -209,7 +209,7 @@ describe('fetch-upstream.sh', () => {
       encoding: 'utf-8',
     });
     expect(remotes).toContain('upstream');
-    expect(remotes).toContain('qwibitai/nanoclaw');
+    expect(remotes).toContain('qwibitai/opennekaise');
   });
 
   it('extracts files to temp dir correctly', () => {

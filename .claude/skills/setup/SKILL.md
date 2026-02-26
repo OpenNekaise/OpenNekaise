@@ -122,7 +122,7 @@ Tell user to post a message in registered Slack channel:
 Logs:
 
 ```bash
-tail -f logs/opennekaise-agent.log
+tail -f logs/opennekaise.log
 ```
 
 ## Optional: WhatsApp (Only if explicitly requested)

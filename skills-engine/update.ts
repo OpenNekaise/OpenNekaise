@@ -168,7 +168,7 @@ export async function applyUpdate(newCorePath: string): Promise<UpdateResult> {
       // Three-way merge: current ← base → newCore
       const tmpCurrent = path.join(
         os.tmpdir(),
-        `nanoclaw-update-${crypto.randomUUID()}-${path.basename(relPath)}`,
+        `opennekaise-update-${crypto.randomUUID()}-${path.basename(relPath)}`,
       );
       fs.copyFileSync(currentPath, tmpCurrent);
 
@@ -231,7 +231,7 @@ export async function applyUpdate(newCorePath: string): Promise<UpdateResult> {
     // --- Record path remaps from update metadata ---
     const remapFile = path.join(
       newCorePath,
-      '.nanoclaw-meta',
+      '.opennekaise-meta',
       'path_remap.yaml',
     );
     if (fs.existsSync(remapFile)) {

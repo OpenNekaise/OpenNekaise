@@ -1,9 +1,9 @@
-export const NANOCLAW_DIR = '.nanoclaw';
+export const NANOCLAW_DIR = '.opennekaise';
 export const STATE_FILE = 'state.yaml';
-export const BASE_DIR = '.nanoclaw/base';
-export const BACKUP_DIR = '.nanoclaw/backup';
-export const LOCK_FILE = '.nanoclaw/lock';
-export const CUSTOM_DIR = '.nanoclaw/custom';
+export const BASE_DIR = '.opennekaise/base';
+export const BACKUP_DIR = '.opennekaise/backup';
+export const LOCK_FILE = '.opennekaise/lock';
+export const CUSTOM_DIR = '.opennekaise/custom';
 export const SKILLS_SCHEMA_VERSION = '0.1.0';
 
 // Top-level paths to include in base snapshot and upstream extraction.

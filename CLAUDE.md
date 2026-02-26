@@ -50,9 +50,9 @@ launchctl unload ~/Library/LaunchAgents/com.opennekaise.agent.plist
 launchctl kickstart -k gui/$(id -u)/com.opennekaise.agent  # restart
 
 # Linux (systemd)
-systemctl --user start opennekaise-agent
-systemctl --user stop opennekaise-agent
-systemctl --user restart opennekaise-agent
+systemctl --user start opennekaise
+systemctl --user stop opennekaise
+systemctl --user restart opennekaise
 ```
 
 ## Container Build Cache

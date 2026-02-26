@@ -25,8 +25,8 @@
         <string>Nekaise</string>
     </dict>
     <key>StandardOutPath</key>
-    <string>{{PROJECT_ROOT}}/logs/opennekaise-agent.log</string>
+    <string>{{PROJECT_ROOT}}/logs/opennekaise.log</string>
     <key>StandardErrorPath</key>
-    <string>{{PROJECT_ROOT}}/logs/opennekaise-agent.error.log</string>
+    <string>{{PROJECT_ROOT}}/logs/opennekaise.error.log</string>
 </dict>
 </plist>

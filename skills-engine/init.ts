@@ -15,7 +15,7 @@ import { SkillState } from './types.js';
 // Directories/files to always exclude from base snapshot
 const BASE_EXCLUDES = [
   'node_modules',
-  '.nanoclaw',
+  '.opennekaise',
   '.git',
   'dist',
   'data',
@@ -26,7 +26,7 @@ const BASE_EXCLUDES = [
 
 export function initNanoclawDir(): void {
   const projectRoot = process.cwd();
-  const nanoclawDir = path.join(projectRoot, NANOCLAW_DIR);
+  const opennekaiseDir = path.join(projectRoot, NANOCLAW_DIR);
   const baseDir = path.join(projectRoot, BASE_DIR);
 
   // Create structure

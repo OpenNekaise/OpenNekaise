@@ -106,9 +106,9 @@ function setupLaunchd(
         <string>${homeDir}</string>
     </dict>
     <key>StandardOutPath</key>
-    <string>${projectRoot}/logs/opennekaise-agent.log</string>
+    <string>${projectRoot}/logs/opennekaise.log</string>
     <key>StandardErrorPath</key>
-    <string>${projectRoot}/logs/opennekaise-agent.error.log</string>
+    <string>${projectRoot}/logs/opennekaise.error.log</string>
 </dict>
 </plist>`;
 
@@ -213,7 +213,7 @@ function setupSystemd(
   let systemctlPrefix: string;
 
   if (runningAsRoot) {
-    unitPath = '/etc/systemd/system/opennekaise-agent.service';
+    unitPath = '/etc/systemd/system/opennekaise.service';
     systemctlPrefix = 'systemctl';
     logger.info('Running as root — installing system-level systemd unit');
   } else {
@@ -229,7 +229,7 @@ function setupSystemd(
     }
     const unitDir = path.join(homeDir, '.config', 'systemd', 'user');
     fs.mkdirSync(unitDir, { recursive: true });
-    unitPath = path.join(unitDir, 'opennekaise-agent.service');
+    unitPath = path.join(unitDir, 'opennekaise.service');
     systemctlPrefix = 'systemctl --user';
   }
 
@@ -245,8 +245,8 @@ Restart=always
 RestartSec=5
 Environment=HOME=${homeDir}
 Environment=PATH=/usr/local/bin:/usr/bin:/bin:${homeDir}/.local/bin
-StandardOutput=append:${projectRoot}/logs/opennekaise-agent.log
-StandardError=append:${projectRoot}/logs/opennekaise-agent.error.log
+StandardOutput=append:${projectRoot}/logs/opennekaise.log
+StandardError=append:${projectRoot}/logs/opennekaise.error.log
 
 [Install]
 WantedBy=${runningAsRoot ? 'multi-user.target' : 'default.target'}`;
@@ -273,7 +273,7 @@ WantedBy=${runningAsRoot ? 'multi-user.target' : 'default.target'}`;
   }
 
   try {
-    execSync(`${systemctlPrefix} enable opennekaise-agent`, {
+    execSync(`${systemctlPrefix} enable opennekaise`, {
       stdio: 'ignore',
     });
   } catch (err) {
@@ -281,7 +281,7 @@ WantedBy=${runningAsRoot ? 'multi-user.target' : 'default.target'}`;
   }
 
   try {
-    execSync(`${systemctlPrefix} start opennekaise-agent`, {
+    execSync(`${systemctlPrefix} start opennekaise`, {
       stdio: 'ignore',
     });
   } catch (err) {
@@ -291,7 +291,7 @@ WantedBy=${runningAsRoot ? 'multi-user.target' : 'default.target'}`;
   // Verify
   let serviceLoaded = false;
   try {
-    execSync(`${systemctlPrefix} is-active opennekaise-agent`, {
+    execSync(`${systemctlPrefix} is-active opennekaise`, {
       stdio: 'ignore',
     });
     serviceLoaded = true;
@@ -318,12 +318,12 @@ function setupNohupFallback(
 ): void {
   logger.warn('No systemd detected — generating nohup wrapper script');
 
-  const wrapperPath = path.join(projectRoot, 'start-opennekaise-agent.sh');
-  const pidFile = path.join(projectRoot, 'opennekaise-agent.pid');
+  const wrapperPath = path.join(projectRoot, 'start-opennekaise.sh');
+  const pidFile = path.join(projectRoot, 'opennekaise.pid');
 
   const lines = [
     '#!/bin/bash',
-    '# start-opennekaise-agent.sh — Start Nekaise Agent without systemd',
+    '# start-opennekaise.sh — Start Nekaise Agent without systemd',
     `# To stop: kill \\$(cat ${pidFile})`,
     '',
     'set -euo pipefail',
@@ -342,12 +342,12 @@ function setupNohupFallback(
     '',
     'echo "Starting Nekaise Agent..."',
     `nohup ${JSON.stringify(nodePath)} ${JSON.stringify(projectRoot + '/dist/index.js')} \\`,
-    `  >> ${JSON.stringify(projectRoot + '/logs/opennekaise-agent.log')} \\`,
-    `  2>> ${JSON.stringify(projectRoot + '/logs/opennekaise-agent.error.log')} &`,
+    `  >> ${JSON.stringify(projectRoot + '/logs/opennekaise.log')} \\`,
+    `  2>> ${JSON.stringify(projectRoot + '/logs/opennekaise.error.log')} &`,
     '',
     `echo $! > ${JSON.stringify(pidFile)}`,
     'echo "Nekaise Agent started (PID $!)"',
-    `echo "Logs: tail -f ${projectRoot}/logs/opennekaise-agent.log"`,
+    `echo "Logs: tail -f ${projectRoot}/logs/opennekaise.log"`,
   ];
   const wrapper = lines.join('\n') + '\n';
 
