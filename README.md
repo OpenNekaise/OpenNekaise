@@ -22,12 +22,21 @@ claude
 
 Then run `/setup`.
 
-## Why OpenNekaise
+## Building Data Design
 
-- Small enough to understand and modify
-- Secure by container isolation, not only app-level guards
-- Practical for real operations: chat-native workflows and scheduled tasks
-- Open-source and community-driven
+OpenNekaise expects building data under the project `home/` directory:
+
+- One folder per building, using the building slug as folder name (example: `home/rio-10/`)
+- User data in `home/` is local by design and not tracked by git
+- Only `home/.gitkeep` is versioned to keep directory structure
+
+Isolation rule:
+
+- Each non-main registered group gets only its matching building folder mounted in the container as `/home/<group-folder>`
+- Building mounts are read-only
+- The agent for one building channel cannot access other building folders
+
+To make this work, register each building channel with `folder=<building-slug>`.
 
 ## Core Capabilities
 
@@ -48,7 +57,7 @@ Single Node.js host process with per-group isolation and container execution.
 
 Key files:
 - `src/index.ts` - orchestrator and message loop
-- `src/channels/whatsapp.ts` - channel integration
+- `src/channels/slack.ts` - channel integration
 - `src/container-runner.ts` - container lifecycle and mounts
 - `src/task-scheduler.ts` - recurring tasks
 - `src/db.ts` - persistent state and message storage
