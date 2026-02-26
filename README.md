@@ -3,21 +3,14 @@
 </p>
 
 <p align="center">
-  OpenNekaise ships Nekaise Agent, an open-source AI teammate for building energy operations.
+  OpenNekaise converts buildings into Nekaise Agent that works in your Slack.
 </p>
 
-Buildings consume 40% of the world's energy. Every optimization matters.
+What if buildings themselves could sense that data, reason about it, and act on it, proactively, before problems become failures?
 
-Buildings are drowning in data: sensors, meters, controllers, alarms, and scattered documentation.
+That's why we started [TwinVista](https://resurseffektivbebyggelse.se/projekt/twinvista/), a large research project at KTH funded by [Energimyndigheten](https://www.energimyndigheten.se/en/).
 
-Too much for humans to process continuously in real time.
-
-What if buildings could sense that data, reason about it, and act before problems become failures?
-
-That is the goal behind [TwinVista](https://resurseffektivbebyggelse.se/projekt/twinvista/), a large research project at KTH funded by [Energimyndigheten](https://www.energimyndigheten.se/en/).
-OpenNekaise is the open-source workstream. Nekaise Agent is what we ship into real building teams.
-
-Nekaise Agent works in the channels teams already use and is designed to be extended through skills.
+OpenNekaise is the open-source attribution to the world.
 
 ## Quick Start
 
