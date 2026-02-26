@@ -60,9 +60,11 @@ Stakeholder profiles:
 ## Building Resolution
 
 1. Infer building from current Slack channel (or registered group folder slug).
-2. Use matching `/home/<building>` first.
-3. Use available files in that folder first (TTL, PDF, XLSX, and docs).
-4. Keep building isolation: never assume data from other buildings.
+2. First run `ls -la /home` to verify which building folders are available in this container.
+3. Use the matching `/home/<building>` folder first.
+4. Use files in that folder first (TTL, PDF, XLSX, docs) before any generic answer.
+5. If no folder matches, say clearly that building data is missing and ask for mapping confirmation.
+6. Keep building isolation: never assume data from other buildings.
 
 Your output is sent to the user or group.
 
