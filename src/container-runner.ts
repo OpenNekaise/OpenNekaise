@@ -56,6 +56,47 @@ interface VolumeMount {
   readonly: boolean;
 }
 
+/**
+ * Normalize a folder name to a plain ASCII slug for fuzzy matching.
+ * Converts common Scandinavian/German characters so that a registered
+ * folder "virkesvaegen-17c" matches a home/ directory "virkesvägen-17c".
+ */
+function toAsciiSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[äæ]/g, 'ae')
+    .replace(/[öøœ]/g, 'oe')
+    .replace(/[ü]/g, 'ue')
+    .replace(/[å]/g, 'aa')
+    .replace(/[ñ]/g, 'n')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+/**
+ * Resolve the actual host path for a building folder.
+ * Tries exact match first, then a unicode-normalized fallback scan.
+ * Returns the host path string, or null if no match found.
+ */
+function resolveBuildingHostDir(homeDataDir: string, folder: string): string | null {
+  const exact = path.join(homeDataDir, folder);
+  if (fs.existsSync(exact)) return exact;
+
+  const targetSlug = toAsciiSlug(folder);
+  try {
+    const entries = fs.readdirSync(homeDataDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (toAsciiSlug(entry.name) === targetSlug) {
+        return path.join(homeDataDir, entry.name);
+      }
+    }
+  } catch {
+    // homeDataDir may not exist yet
+  }
+  return null;
+}
+
 function buildVolumeMounts(
   group: RegisteredGroup,
   isMain: boolean,
@@ -125,8 +166,10 @@ function buildVolumeMounts(
     } else {
       // Building data isolation:
       // each non-main group only gets access to its matching home/<group-folder>.
-      const buildingHostDir = path.join(HOME_DATA_DIR, group.folder);
-      if (fs.existsSync(buildingHostDir)) {
+      // Try exact match first, then fall back to unicode-equivalent folder
+      // (e.g. registered folder "virkesvaegen-17c" matches home dir "virkesvägen-17c").
+      const buildingHostDir = resolveBuildingHostDir(HOME_DATA_DIR, group.folder);
+      if (buildingHostDir) {
         mounts.push({
           hostPath: buildingHostDir,
           containerPath: `/home/${group.folder}`,
@@ -134,7 +177,7 @@ function buildVolumeMounts(
         });
       } else {
         logger.debug(
-          { group: group.name, expectedPath: buildingHostDir },
+          { group: group.name, folder: group.folder },
           'No matching building folder under home/, skipping building data mount',
         );
       }
