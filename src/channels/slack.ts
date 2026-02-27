@@ -41,6 +41,7 @@ export class SlackChannel implements Channel {
   private flushing = false;
   private userNameCache = new Map<string, string>();
   private threadContext = new Map<string, string>();
+  private typingIntervals = new Map<string, ReturnType<typeof setInterval>>();
 
   private opts: SlackChannelOpts;
 
@@ -221,11 +222,41 @@ export class SlackChannel implements Channel {
     await this.app.stop();
   }
 
-  // Slack does not expose a typing indicator API for bots.
-  // This no-op satisfies the Channel interface so the orchestrator
-  // doesn't need channel-specific branching.
-  async setTyping(_jid: string, _isTyping: boolean): Promise<void> {
-    // no-op: Slack Bot API has no typing indicator endpoint
+  // Uses assistant.threads.setStatus to show a native typing animation.
+  // Requires the Slack app to have the assistant:write scope and the
+  // Agents & Assistants feature enabled. Fails silently if not available.
+  // A keepalive interval refreshes the status every 90s (Slack auto-clears at 2min).
+  async setTyping(jid: string, isTyping: boolean): Promise<void> {
+    const channelId = jid.replace(/^slack:/, '');
+    const threadTs = this.threadContext.get(jid);
+
+    const existing = this.typingIntervals.get(jid);
+    if (existing) {
+      clearInterval(existing);
+      this.typingIntervals.delete(jid);
+    }
+
+    const callStatus = async (status: string) => {
+      try {
+        await (this.app.client as unknown as Record<string, unknown> & {
+          assistant: { threads: { setStatus: (args: Record<string, string>) => Promise<void> } };
+        }).assistant.threads.setStatus({
+          channel_id: channelId,
+          ...(threadTs ? { thread_ts: threadTs } : {}),
+          status,
+        });
+      } catch {
+        // Silently ignore — app may not have assistant:write scope
+      }
+    };
+
+    if (isTyping) {
+      await callStatus('is thinking...');
+      const interval = setInterval(() => callStatus('is thinking...'), 90_000);
+      this.typingIntervals.set(jid, interval);
+    } else {
+      await callStatus('');
+    }
   }
 
   /**
