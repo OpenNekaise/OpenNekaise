@@ -46,6 +46,21 @@ DM channels (direct messages to the bot) are blocked by default and must be expl
 
 To make building mapping work, register each building channel with `folder=<building-slug>` during `/setup`.
 
+## Agent Memory and Context
+
+Each agent container receives context from up to two CLAUDE.md files depending on channel type:
+
+| Channel type | Context sources |
+|---|---|
+| Building channel (non-DM) | `groups/global/CLAUDE.md` + `groups/<folder>/CLAUDE.md` |
+| DM / admin | `groups/main/CLAUDE.md` only |
+
+**`groups/global/CLAUDE.md`** — shared baseline for all building agents. Put things that apply to every building here: sensor conventions, reporting formats, domain knowledge. Loaded by the agent runner and appended to the system prompt.
+
+**`groups/<folder>/CLAUDE.md`** — per-building memory. Not created at registration — it starts empty and grows as the agent accumulates building-specific knowledge. Loaded automatically by the Claude Code SDK because it is the container working directory. The agent can write to it directly.
+
+**`groups/main/CLAUDE.md`** — admin context. Used only by DM/admin channels. Does not receive the global context.
+
 ## Core Capabilities
 
 - Slack messaging (default channel)
