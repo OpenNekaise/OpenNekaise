@@ -9,6 +9,8 @@ import { readEnvFile } from './env.js';
 const envConfig = readEnvFile([
   'ASSISTANT_NAME',
   'ASSISTANT_HAS_OWN_NUMBER',
+  'ADMIN_DM_JID',
+  'ALLOWED_DM_JIDS',
   'SLACK_ONLY',
 ]);
 
@@ -17,6 +19,16 @@ export const ASSISTANT_NAME =
 export const ASSISTANT_HAS_OWN_NUMBER =
   (process.env.ASSISTANT_HAS_OWN_NUMBER ||
     envConfig.ASSISTANT_HAS_OWN_NUMBER) === 'true';
+export const ADMIN_DM_JID =
+  (process.env.ADMIN_DM_JID || envConfig.ADMIN_DM_JID || '').trim();
+export const ALLOWED_DM_JIDS = (
+  process.env.ALLOWED_DM_JIDS ||
+  envConfig.ALLOWED_DM_JIDS ||
+  ''
+)
+  .split(',')
+  .map((s) => s.trim())
+  .filter((s) => s.length > 0);
 export const POLL_INTERVAL = 2000;
 export const SCHEDULER_POLL_INTERVAL = 60000;
 

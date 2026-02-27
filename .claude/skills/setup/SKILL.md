@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Run initial OpenNekaise setup. Slack-first flow: install dependencies, build container, configure Claude auth, configure Slack tokens/channel, register main channel, and start service.
+description: Run initial OpenNekaise setup. Slack-first flow: install dependencies, build container, configure Claude auth, configure Slack tokens/channel, configure admin DM, register main context on that DM, and start service.
 ---
 
 # OpenNekaise Setup (Slack-First)
@@ -71,19 +71,31 @@ cp .env data/env/env
 
 If user has no Slack app yet, direct them to `.claude/skills/add-slack/SLACK_SETUP.md` and continue once tokens are ready.
 
-## 6. Register Main Slack Channel
+## 6. Configure Admin DM (Required for DM Access)
 
-Ask for Slack channel ID (example: `C0123456789`).
+Ask for Slack DM channel ID (example: `D0123456789`).
 
-Register it as main:
+Configure admin DM and DM allowlist:
 
 ```bash
-npx tsx setup/index.ts --step register -- --jid "slack:C0123456789" --name "main" --trigger "@Nekaise" --folder "main" --no-trigger-required --assistant-name "Nekaise"
+npx tsx setup/index.ts --step admin-dm -- --jid "slack:D0123456789"
+```
+
+This writes:
+- `ADMIN_DM_JID=slack:D0123456789`
+- `ALLOWED_DM_JIDS=slack:D0123456789`
+
+## 7. Register Main on Admin DM
+
+Register the admin DM as `main`:
+
+```bash
+npx tsx setup/index.ts --step register -- --jid "slack:D0123456789" --name "admin-dm" --trigger "@Nekaise" --folder "main" --no-trigger-required --assistant-name "Nekaise"
 ```
 
 If user wants a different trigger/assistant name, use those values.
 
-## 7. Mount Allowlist
+## 8. Mount Allowlist
 
 If user does not need extra host directories:
 
@@ -93,7 +105,7 @@ npx tsx setup/index.ts --step mounts -- --empty
 
 If they do, configure via JSON payload in `--json`.
 
-## 8. Start Service
+## 9. Start Service
 
 Run:
 
@@ -103,7 +115,7 @@ npx tsx setup/index.ts --step service
 
 If already loaded, unload/stop old service and retry.
 
-## 9. Verify
+## 10. Verify
 
 Run:
 
@@ -113,11 +125,11 @@ npx tsx setup/index.ts --step verify
 
 If verify fails, fix the reported item and rerun.
 
-## 10. Functional Check (Slack)
+## 11. Functional Check (Slack)
 
-Tell user to post a message in registered Slack channel:
-- Main channel: any message
-- Non-main channel: include trigger (for example `@Nekaise`)
+Tell user to post a message in the admin DM (`slack:D...`) and in any registered building channel:
+- Admin DM (`main`): any message
+- Non-main channel: include trigger if required (for example `@Nekaise`)
 
 Logs:
 

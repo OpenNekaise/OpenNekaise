@@ -36,13 +36,15 @@ Isolation rule:
 - Building mounts are read-only
 - The agent for one building channel cannot access other building folders
 
-DM channels (direct messages to the bot) are treated as admin interactions:
+DM channels (direct messages to the bot) are blocked by default and must be explicitly configured:
 
-- Auto-registered on startup with no trigger required
-- Get the entire `home/` directory mounted read-write
-- Can read, write, and manage data across all buildings
+- Set `ADMIN_DM_JID=<your-dm-jid>` in `.env` (example: `slack:D0123456789`)
+- Set `ALLOWED_DM_JIDS=<jid1>,<jid2>` to allow specific DM channels
+- Only allowed DMs can be registered/processed
+- Allowed DMs are restricted to `main` context (legacy `dm-*` folders are rejected)
+- The admin DM follows `main` context/mount behavior
 
-To make this work, register each building channel with `folder=<building-slug>` during `/setup`. DM channels are auto-registered at startup when a matching `home/<folder>` exists.
+To make building mapping work, register each building channel with `folder=<building-slug>` during `/setup`.
 
 ## Core Capabilities
 

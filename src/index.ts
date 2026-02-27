@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 
 import {
+  ALLOWED_DM_JIDS,
+  ADMIN_DM_JID,
   ASSISTANT_NAME,
   HOME_DATA_DIR,
   IDLE_TIMEOUT,
@@ -31,6 +33,7 @@ import {
   getNewMessages,
   getRouterState,
   initDatabase,
+  deleteRegisteredGroup,
   setRegisteredGroup,
   setRouterState,
   setSession,
@@ -60,6 +63,31 @@ let slack: SlackChannel | undefined;
 const channels: Channel[] = [];
 const queue = new GroupQueue();
 
+function isDmJid(jid: string): boolean {
+  return jid.startsWith('slack:D') || jid.endsWith('@s.whatsapp.net');
+}
+
+function isDmAllowed(jid: string): boolean {
+  if (!isDmJid(jid)) return true;
+  if (jid === ADMIN_DM_JID) return true;
+  return ALLOWED_DM_JIDS.includes(jid);
+}
+
+function pruneDisallowedDmRegistrations(): void {
+  for (const [jid, group] of Object.entries(registeredGroups)) {
+    if (!isDmJid(jid)) continue;
+    const shouldRemove =
+      !isDmAllowed(jid) || group.folder !== MAIN_GROUP_FOLDER;
+    if (!shouldRemove) continue;
+    delete registeredGroups[jid];
+    deleteRegisteredGroup(jid);
+    logger.info(
+      { jid, folder: group.folder },
+      'Removed legacy or disallowed DM registration',
+    );
+  }
+}
+
 function loadState(): void {
   lastTimestamp = getRouterState('last_timestamp') || '';
   const agentTs = getRouterState('last_agent_timestamp');
@@ -83,6 +111,20 @@ function saveState(): void {
 }
 
 function registerGroup(jid: string, group: RegisteredGroup): void {
+  if (isDmJid(jid)) {
+    if (!isDmAllowed(jid)) {
+      logger.warn({ jid }, 'Rejecting disallowed DM registration');
+      return;
+    }
+    if (group.folder !== MAIN_GROUP_FOLDER) {
+      logger.warn(
+        { jid, folder: group.folder },
+        'Rejecting DM registration outside main folder',
+      );
+      return;
+    }
+  }
+
   let groupDir: string;
   try {
     groupDir = resolveGroupFolderPath(group.folder);
@@ -196,30 +238,41 @@ function autoRegisterMatchingChannels(): void {
 
 /**
  * Auto-register DM (direct message) channels.
- * DMs are admin interactions and get full access to all home/ folders.
+ * DMs are disabled by default. Only ADMIN_DM_JID is auto-registered,
+ * and it is always mapped to main.
  */
 function autoRegisterDmChannels(): void {
+  if (!ADMIN_DM_JID) return;
+
   const chats = getAllChats();
-  const dms = chats.filter((c) => !c.is_group);
+  const adminDm = chats.find((c) => !c.is_group && c.jid === ADMIN_DM_JID);
+  if (!adminDm) return;
 
-  for (const dm of dms) {
-    if (registeredGroups[dm.jid]) continue;
-
-    const sanitized = dm.jid.replace(/[^a-zA-Z0-9-]/g, '-');
-    const folder = `dm-${sanitized}`;
-
-    registerGroup(dm.jid, {
-      name: dm.name || `DM ${dm.jid}`,
-      folder,
-      trigger: TRIGGER_PATTERN.source,
-      added_at: new Date().toISOString(),
-      requiresTrigger: false,
-    });
-    logger.info(
-      { jid: dm.jid, name: dm.name, folder },
-      'Auto-registered DM channel',
+  const existingMain = Object.entries(registeredGroups).find(
+    ([jid, group]) => group.folder === MAIN_GROUP_FOLDER && jid !== ADMIN_DM_JID,
+  );
+  if (existingMain) {
+    logger.warn(
+      { adminDmJid: ADMIN_DM_JID, mainJid: existingMain[0] },
+      'ADMIN_DM_JID set, but main folder is already registered to another JID',
     );
+    return;
   }
+
+  const existingAdmin = registeredGroups[ADMIN_DM_JID];
+  if (existingAdmin?.folder === MAIN_GROUP_FOLDER) return;
+
+  registerGroup(ADMIN_DM_JID, {
+    name: adminDm.name || `DM ${ADMIN_DM_JID}`,
+    folder: MAIN_GROUP_FOLDER,
+    trigger: TRIGGER_PATTERN.source,
+    added_at: new Date().toISOString(),
+    requiresTrigger: false,
+  });
+  logger.info(
+    { jid: ADMIN_DM_JID, folder: MAIN_GROUP_FOLDER },
+    'Auto-registered admin DM as main group',
+  );
 }
 
 /**
@@ -550,6 +603,7 @@ async function main(): Promise<void> {
   initDatabase();
   logger.info('Database initialized');
   loadState();
+  pruneDisallowedDmRegistrations();
 
   // Graceful shutdown handlers
   const shutdown = async (signal: string) => {
