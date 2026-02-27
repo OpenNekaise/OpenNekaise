@@ -70,9 +70,11 @@ Key files:
 
 ## Upstream Credit
 
-OpenNekaise builds on [NanoClaw](https://github.com/qwibitai/nanoclaw). Thanks to the NanoClaw maintainers and contributors for creating the lightweight, container-isolated foundation this project extends.
+OpenNekaise builds on [NanoClaw](https://github.com/qwibitai/nanoclaw). Thanks to the NanoClaw maintainers and contributors for the lightweight foundation this project extends.
 
-We also thank [OpenClaw](https://github.com/openclaw/openclaw) and its contributors for opening a new way of working with personal AI agents and helping move this space forward.
+It is hard to say no to [pure Claude Agent SDK-based AI agents](https://platform.claude.com/docs/en/agent-sdk/overview).
+
+We also thank [OpenClaw](https://github.com/openclaw/openclaw) and its contributors for opening a new way of thinking and working with LLMs.
 
 ## License
 
